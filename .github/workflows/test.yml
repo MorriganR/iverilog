@@ -56,14 +56,39 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update -qq
-        sudo apt install -y make g++ git bison flex gperf libreadline-dev autoconf
+        sudo apt install -y make g++ git bison flex gperf libreadline-dev autoconf ccache
+
+    - name: ccache for pull request
+      uses: actions/cache@v2
+      if: github.event_name == 'pull_request'
+      with:
+        path: /home/runner/.ccache
+        key: ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-${{ github.sha }}
+        restore-keys: |
+          ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-
+          ccache-lin-${{ matrix.os }}-master-
+
+    - name: ccache for branch/master
+      uses: actions/cache@v2
+      if: github.event_name != 'pull_request'
+      with:
+        path: /home/runner/.ccache
+        key: ccache-lin-${{ matrix.os }}-master-${{ github.sha }}
+        restore-keys: |
+          ccache-lin-${{ matrix.os }}-master-
 
     - name: Build, check and install
       run: |
+        echo "::group::ccache_setup"
+        ccache -M 500M
+        export PATH="/usr/lib/ccache:$PATH"
+        ccache -z
+        echo "::endgroup::"
         autoconf
         ./configure
         make check
         sudo make install
+        ccache -s
 
     - name: Test
       run: ./.github/test.sh
