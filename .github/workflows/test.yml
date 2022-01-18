@@ -11,14 +11,16 @@ on:
 jobs:
 
   mac:
+    runs-on: macos-${{ matrix.os }}
+    name: '🍏 macos ${{ matrix.os }}'
     strategy:
       fail-fast: false
       matrix:
         os: [
           '10.15'
         ]
-    runs-on: macos-${{ matrix.os }}
-    name: '🍏 macos ${{ matrix.os }}'
+    env:
+      CCACHE_DIR: /Users/runner/ccache
     steps:
 
     - uses: actions/checkout@v2
@@ -27,19 +29,48 @@ jobs:
       run: |
         brew install bison
 
+    - name: ccache for pull request
+      uses: actions/cache@v2
+      if: github.event_name == 'pull_request'
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-mac-${{ matrix.os }}-user/${{ github.actor }}-${{ github.sha }}
+        restore-keys: |
+          ccache-mac-${{ matrix.os }}-user/${{ github.actor }}-
+          ccache-mac-${{ matrix.os }}-master-
+
+    - name: ccache for branch/master
+      uses: actions/cache@v2
+      if: github.event_name != 'pull_request'
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-mac-${{ matrix.os }}-master-${{ github.sha }}
+        restore-keys: |
+          ccache-mac-${{ matrix.os }}-master-
+
+    - name: ccache
+      run: |
+        mkdir -p ${CCACHE_DIR}
+        brew install ccache
+        ccache -M 500M
+        ccache -z
+
     - name: Build, check and install
       run: |
-        export PATH="/usr/local/opt/bison/bin:$PATH"
+        export PATH="/usr/local/opt/ccache/libexec:/usr/local/opt/bison/bin:$PATH"
         autoconf
         ./configure
         make check
         sudo make install
+        ccache -s
 
     - name: Test
       run: ./.github/test.sh
 
 
   lin:
+    runs-on: ubuntu-${{ matrix.os }}
+    name: '🐧 Ubuntu ${{ matrix.os }}'
     strategy:
       fail-fast: false
       matrix:
@@ -47,8 +78,8 @@ jobs:
           '18.04',
           '20.04'
         ]
-    runs-on: ubuntu-${{ matrix.os }}
-    name: '🐧 Ubuntu ${{ matrix.os }}'
+    env:
+      CCACHE_DIR: /home/runner/.ccache
     steps:
 
     - uses: actions/checkout@v2
@@ -56,14 +87,39 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update -qq
-        sudo apt install -y make g++ git bison flex gperf libreadline-dev autoconf
+        sudo apt install -y make g++ git bison flex gperf libreadline-dev autoconf ccache
+
+    - name: ccache for pull request
+      uses: actions/cache@v2
+      if: github.event_name == 'pull_request'
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-${{ github.sha }}
+        restore-keys: |
+          ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-
+          ccache-lin-${{ matrix.os }}-master-
+
+    - name: ccache for branch/master
+      uses: actions/cache@v2
+      if: github.event_name != 'pull_request'
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-lin-${{ matrix.os }}-master-${{ github.sha }}
+        restore-keys: |
+          ccache-lin-${{ matrix.os }}-master-
 
     - name: Build, check and install
       run: |
+        echo "::group::ccache_setup"
+        ccache -M 500M
+        export PATH="/usr/lib/ccache:$PATH"
+        ccache -z
+        echo "::endgroup::"
         autoconf
         ./configure
         make check
         sudo make install
+        ccache -s
 
     - name: Test
       run: ./.github/test.sh
