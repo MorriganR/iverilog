@@ -31,22 +31,11 @@ jobs:
 
     - name: ccache for pull request
       uses: actions/cache@v2
-      if: github.event_name == 'pull_request'
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: ccache-mac-${{ matrix.os }}-user/${{ github.actor }}-${{ github.sha }}
+        key: ccache-mac-${{ matrix.os }}-${{ github.sha }}
         restore-keys: |
-          ccache-mac-${{ matrix.os }}-user/${{ github.actor }}-
-          ccache-mac-${{ matrix.os }}-master-
-
-    - name: ccache for branch/master
-      uses: actions/cache@v2
-      if: github.event_name != 'pull_request'
-      with:
-        path: ${{ env.CCACHE_DIR }}
-        key: ccache-mac-${{ matrix.os }}-master-${{ github.sha }}
-        restore-keys: |
-          ccache-mac-${{ matrix.os }}-master-
+          ccache-mac-${{ matrix.os }}-
 
     - name: ccache
       run: |
@@ -91,22 +80,11 @@ jobs:
 
     - name: ccache for pull request
       uses: actions/cache@v2
-      if: github.event_name == 'pull_request'
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-${{ github.sha }}
+        key: ccache-lin-${{ matrix.os }}-${{ github.sha }}
         restore-keys: |
-          ccache-lin-${{ matrix.os }}-user/${{ github.actor }}-
-          ccache-lin-${{ matrix.os }}-master-
-
-    - name: ccache for branch/master
-      uses: actions/cache@v2
-      if: github.event_name != 'pull_request'
-      with:
-        path: ${{ env.CCACHE_DIR }}
-        key: ccache-lin-${{ matrix.os }}-master-${{ github.sha }}
-        restore-keys: |
-          ccache-lin-${{ matrix.os }}-master-
+          ccache-lin-${{ matrix.os }}-
 
     - name: Build, check and install
       run: |
