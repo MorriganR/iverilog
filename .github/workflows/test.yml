@@ -133,11 +133,48 @@ jobs:
           git
           base-devel
           mingw-w64-${{ matrix.arch }}-toolchain
+          mingw-w64-${{ matrix.arch }}-ccache
+
 
     - name: Build and check
       run: |
+        pwd
+        ls -la /${{ matrix.msystem }}/bin/ccac*
+        ls -la /${{ matrix.msystem }}/lib/ccache/
+        ls -la /${{ matrix.msystem }}/lib/ccache/bin/
+        mkdir -p /d/a/ccache
+        mkdir -p /d/a/ccachetmp
+        ls -la /d/a/
+        ls -la /d/a/iverilog
+        ls -la "D:/a/"
+        ls -la "D:/a/iverilog"
+        export CCACHE_DIR="/d/a/ccache"
+        export CCACHE_TEMPDIR="/d/a/ccachetmp"
+        echo "# whereis g++" && whereis g++
+        echo "# whereis g++" && whereis g++
+        echo "# whereis ccache" && whereis ccache
+        echo "# g++ -v" && g++ -v
+        echo "# /MINGW64/lib/ccache/bin/g++ -v" && /MINGW64/lib/ccache/bin/g++ -v || echo "# (/MINGW64/lib/ccache/bin/g++ -v) - FAIL"
+        echo "# ccache g++ -v" && ccache g++ -v || echo "# (ccache g++ -v) - FAIL"
+        echo "# ccache /${{ matrix.msystem }}/bin/g++ -v" && ccache /${{ matrix.msystem }}/bin/g++ -v || echo "# (ccache /${{ matrix.msystem }}/bin/g++ -v) - FAIL"
+        echo "ls -la /${{ matrix.msystem }}/bin/g++" && ls -la /${{ matrix.msystem }}/bin/g++
+        echo "::group::env"
+        env
+        echo "::endgroup::"
+        ccache -V
+        ccache -p
+        ccache --verbose -s
         cd msys2
+        pwd
+        ls -la
+        echo "::group::makepkg"
         makepkg-mingw --noconfirm --noprogressbar -sCLf
+        echo "::endgroup::"
+        ccache --verbose -s
+        echo "::group::env"
+        env
+        echo "::endgroup::"
+        cat /${{ matrix.msystem }}/lib/ccache/bin/g++
 
     - name: Install
       run: pacman -U --noconfirm msys2/*.zst
