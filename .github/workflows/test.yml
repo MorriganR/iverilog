@@ -21,7 +21,6 @@ jobs:
         ]
     env:
       CCACHE_DIR: /Users/runner/ccache
-      CCACHE_TEMPDIR: /Users/runner/ccachetmp
     steps:
 
     - uses: actions/checkout@v2
@@ -41,7 +40,6 @@ jobs:
     - name: ccache setup
       run: |
         mkdir -p ${{ env.CCACHE_DIR }}
-        mkdir -p ${{ env.CCACHE_TEMPDIR }}
         brew install ccache
         ccache -M 500M
         ccache -v -s
@@ -72,7 +70,6 @@ jobs:
         ]
     env:
       CCACHE_DIR: /home/runner/ccache
-      CCACHE_TEMPDIR: /home/runner/ccachetmp
     steps:
 
     - uses: actions/checkout@v2
@@ -94,7 +91,6 @@ jobs:
       run: |
         echo "::group::ccache_setup"
         mkdir -p ${{ env.CCACHE_DIR }}
-        mkdir -p ${{ env.CCACHE_TEMPDIR }}
         ccache -M 500M
         export PATH="/usr/lib/ccache:$PATH"
         ccache -s
@@ -126,7 +122,6 @@ jobs:
     env:
       MINGW_INSTALLS: ${{ matrix.msystem }}
       CCACHE_DIR: "D:/a/ccache"
-      CCACHE_TEMPDIR: "D:/a/ccachetmp"
     steps:
 
     - run: git config --global core.autocrlf input
@@ -156,16 +151,16 @@ jobs:
       run: |
         echo "::group::ccache_setup"
         mkdir -p ${{ env.CCACHE_DIR }}
-        mkdir -p ${{ env.CCACHE_TEMPDIR }}
         ccache -M 500M
-        ccache -v -s
+        ccache -s
         ccache -z
         echo "::endgroup::"
         echo "::group::makepkg"
         cd msys2
         makepkg-mingw --noconfirm --noprogressbar -sCLf
         echo "::endgroup::"
-        ccache -v -s
+        ccache -s
+        du -h /var/cache/pacman/pkg
 
     - name: Install
       run: pacman -U --noconfirm msys2/*.zst
