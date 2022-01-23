@@ -152,14 +152,14 @@ jobs:
         echo "::group::ccache_setup"
         mkdir -p ${{ env.CCACHE_DIR }}
         ccache -M 500M
-        ccache -s
+        ccache -v -s
         ccache -z
         echo "::endgroup::"
         echo "::group::makepkg"
         cd msys2
         makepkg-mingw --noconfirm --noprogressbar -sCLf
         echo "::endgroup::"
-        ccache -s
+        ccache -v -s
         du -h /var/cache/pacman/pkg
 
     - name: Install
