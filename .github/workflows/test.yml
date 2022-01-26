@@ -11,14 +11,14 @@ on:
 jobs:
 
   mac:
-    name: '🍏 macos ${{ matrix.os }}'
-    runs-on: macos-${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [
           '10.15'
         ]
+    runs-on: macos-${{ matrix.os }}
+    name: '🍏 macos ${{ matrix.os }}'
     env:
       CCACHE_DIR: /Users/runner/ccache
     steps:
@@ -59,8 +59,6 @@ jobs:
 
 
   lin:
-    name: '🐧 Ubuntu ${{ matrix.os }}'
-    runs-on: ubuntu-${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -68,6 +66,8 @@ jobs:
           '18.04',
           '20.04'
         ]
+    runs-on: ubuntu-${{ matrix.os }}
+    name: '🐧 Ubuntu ${{ matrix.os }}'
     env:
       CCACHE_DIR: /home/runner/ccache
     steps:
@@ -89,13 +89,11 @@ jobs:
 
     - name: Build, check and install
       run: |
-        echo "::group::ccache_setup"
         mkdir -p ${{ env.CCACHE_DIR }}
         ccache -M 500M
         export PATH="/usr/lib/ccache:$PATH"
         ccache -s
         ccache -z
-        echo "::endgroup::"
         autoconf
         ./configure
         make check
@@ -107,7 +105,6 @@ jobs:
 
 
   win:
-    name: 🟪 ${{ matrix.msystem}} · ${{ matrix.arch }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -116,6 +113,7 @@ jobs:
           { msystem: MINGW64, arch: x86_64 },
           { msystem: MINGW32, arch: i686 }
         ]
+    name: 🟪 ${{ matrix.msystem}} · ${{ matrix.arch }}
     defaults:
       run:
         shell: msys2 {0}
@@ -149,18 +147,13 @@ jobs:
 
     - name: Build and check
       run: |
-        echo "::group::ccache_setup"
         mkdir -p ${{ env.CCACHE_DIR }}
         ccache -M 500M
         ccache -v -s
         ccache -z
-        echo "::endgroup::"
-        echo "::group::makepkg"
         cd msys2
         makepkg-mingw --noconfirm --noprogressbar -sCLf
-        echo "::endgroup::"
         ccache -v -s
-        du -h /var/cache/pacman/pkg
 
     - name: Install
       run: pacman -U --noconfirm msys2/*.zst
